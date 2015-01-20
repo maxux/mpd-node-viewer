@@ -1,0 +1,107 @@
+body {
+	padding-top: 60px;
+	background: none;
+}
+
+.full {
+	background: no-repeat center center fixed; 
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	transition: background 2s linear;
+	
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+}
+
+table thead {
+	font-weight: bold;
+	background: #E5E5E5;
+}
+
+table tbody tr {
+	opacity: 1;
+	transition: 1.5s;
+}
+
+/* library */
+#library {
+	margin-top: 30px;
+}
+
+#library img {
+	width: 180px;
+}
+
+#library .legend {
+	text-align: center;
+}
+
+#library .title {
+	text-align: center;
+}
+
+#album-content table {
+	margin-top: 25px;
+}
+
+#album-content img {
+	width: 100%;
+}
+
+/* */
+.thumb {
+	margin-bottom: 30px;
+}
+
+#playing {
+	text-align: center;
+	margin-top: 50px;
+}
+
+#playing h3 {
+	border-top: solid 1px #BFBFBF;
+	border-bottom: solid 1px #BFBFBF;
+	padding: 8px 0 8px 0;
+	margin: 8px 0 8px 0;
+}
+
+#playing h2 {
+	margin-top: 10px;
+}
+
+#playing #cover {
+	margin-top: 25px;
+	width: 100%;
+	box-shadow: 0 0 25px #000000;
+}
+
+#playing table {
+	font-size: 11px;
+	margin-top: 40px;
+}
+
+#playing #progress {
+	transition: 0s !important;
+	-webkit-transition: 0s;
+	margin-bottom: 8px;
+}
+
+#playing .progress {
+	margin-bottom: 8px;
+}
+
+#playing #timestamp {
+	font-size: 11px;
+}
+
+footer {
+	text-align: center;
+	margin-top: 40px;
+}

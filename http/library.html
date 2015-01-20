@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="description" content="" />
+	<title>Bibliothèque musicale</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="style.css" media="all" type="text/css">
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="musicplayer.js"></script>
+	<script>
+	var player = new RemotePlayer();
+	</script>
+</head>
+
+<body>
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Plus</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				
+				<a class="navbar-brand" href="./">Music Player</a>
+				</div>
+				
+				<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="./library.html">Bibliothèque</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="./">
+						<span class="now-artist"></span> - <span class="now-title"></span>
+					</a></li>
+				</ul>
+				</div>
+			</div>
+		</div>
+	</nav>
+	
+	<div class="container">
+		<div id="library">
+		<div class="row">
+		
+		</div>
+		</div>
+	</div>
+	
+	<div id="album-content" class="modal fade">
+		<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-body">
+			<div class="row">
+				<div class="col-md-5">
+					<img id="album-cover" src="#">
+				</div>
+				<div class="col-md-7">
+					<h1 id="album-artist"></h1>
+					<h2 id="album-name"></h2>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-md-12">
+				<table id="album-tracks" class="table table-condensed">
+					<thead>
+						<td>#</td>
+						<td>Titre</td>
+						<td>Durée</td>
+					</thead>
+					
+					<tbody>
+					</tbody>
+				</table>
+				</div>
+			</div>
+			</div>
+		</div>
+		</div>
+	</div>
+	
+	<footer>
+		<p>Powered by <a href="#">Maxux</a>, <a href="#">bootstrap</a>,
+		<a href="#">mpd</a>, <a href="#">Discogs</a> and <a href="#">node.js</a></p>
+	</footer>
+	
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+
