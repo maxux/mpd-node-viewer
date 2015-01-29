@@ -8,7 +8,7 @@ var MusicPlayer = function() {
 	var self = this;
 	events.EventEmitter.call(this);
 	
-	self.artwork = new sqlite3.Database('databases/artworks.sqlite3');
+	self.artwork = new sqlite3.Database('../databases/artworks.sqlite3');
 	
 	self.current = {
 		title:  null,
@@ -57,7 +57,14 @@ var MusicPlayer = function() {
 		var final = [{}]; // default value
 		var index = 0;
 		
+		 // used to avoid "next object" on line duplication
+		 // for exemple: AlbumArtist twice, with the same value
+		var previous = null;
+		
 		for(var i = 0; i < lines.length - 1; i++) {
+			if(lines[i] == previous)
+				continue;
+			
 			var temp = lines[i].split(": ");
 			var key  = temp[0].trim();
 			
@@ -66,6 +73,7 @@ var MusicPlayer = function() {
 				final[++index] = {};
 				
 			final[index][key] = temp[1].trim();
+			previous = lines[i];
 		}
 		
 		return final;
@@ -104,13 +112,27 @@ var MusicPlayer = function() {
 		self.nextsong.artist = item.artist;
 		self.nextsong.album  = item.album;
 		self.nextsong.title  = item.title;
-		self.nextsong.cover  = 'default-release.png';
+		self.nextsong.cover  = 'default-release.jpg';
 		
-		var artist = self.library[item.artist];
-		if(artist && artist[item.album] && artist[item.album].artworks)
-			self.nextsong.cover = self.library[item.artist][item.album].artworks.cover;
+		//
+		// FIXME: copy/pasta
+		//
+		console.log("[+] next song: " + item.artist + " - " + item.title);
 		
-		self.emit('nextsong', self.nextsong);
+		// searching cover
+		var query = "SELECT * FROM artwork WHERE artist = ? AND album = ?";
+		
+		self.artwork.all(query, item.artist, item.album, function(err, rows) {
+			// setting cover
+			if(rows.length > 0) {
+				console.log("[+] next cover: " + rows[0].fullsize);
+				self.nextsong.cover = rows[0].fullsize;
+				
+			} else console.log("[+] next cover: not found");
+			
+			// sending data to clients
+			self.emit('nextsong', self.nextsong);
+		});
 	}
 	
 	function refresh(error, message) {
@@ -118,16 +140,26 @@ var MusicPlayer = function() {
 		var data = temp[0];
 		
 		self.current = song(data);
-		self.current.cover = 'default-release.png';
+		console.log("[+] current song: " + data.Artist + " - " + data.Title);
 		
-		var artist = self.library[data.Artist];
-		if(artist && artist[data.Album] && artist[data.Album].artworks)
-			self.current.cover = self.library[data.Artist][data.Album].artworks.cover;
+		// setting default cover
+		self.current.cover = 'default-release.jpg';
 		
-		self.emit('refresh', self.current);
+		// searching cover
+		var query = "SELECT * FROM artwork WHERE artist = ? AND album = ?";
 		
-		// grabbing next information
-		client.sendCommand("status", nextsong);
+		self.artwork.all(query, data.Artist, data.Album, function(err, rows) {
+			// setting cover
+			if(rows.length > 0) {
+				console.log("[+] current cover: " + rows[0].fullsize);
+				self.current.cover = rows[0].fullsize;
+				
+			} else console.log("[+] current cover: not found");
+			
+			// sending data to clients
+			self.emit('refresh', self.current);
+			client.sendCommand("status", nextsong);
+		});
 	}
 	
 	function update() {
@@ -159,35 +191,6 @@ var MusicPlayer = function() {
 	//
 	// build the library
 	//
-	function covers() {
-		var query = "SELECT * FROM artwork";
-		
-		self.artwork.all(query, [], function(err, rows) {
-			if(rows == undefined)
-				return;	
-			
-			for(var i = 0; i < rows.length; i++) {
-				// artist not set
-				if(!self.library[rows[i].artist])
-					continue;
-				
-				// album not set
-				if(!self.library[rows[i].artist][rows[i].album])
-					continue;
-					
-				self.library[rows[i].artist][rows[i].album] = {
-					artworks: {
-						cover: rows[i].fullsize,
-						thumb: rows[i].thumb
-					}
-				};
-			}
-			
-			console.log("[+] covers: cache ready");
-			update();
-		});
-	}
-	
 	function albums(_artist, message, test) {
 		var artist = String(_artist);
 		var data = parser(message);
@@ -201,7 +204,7 @@ var MusicPlayer = function() {
 		self.counters.proceed++;
 		if(self.counters.proceed == self.counters.artists) {
 			console.log("[+] mpd: albums: everything fetched");
-			covers();
+			// covers();
 		}
 	}
 	
@@ -265,7 +268,7 @@ var MusicPlayer = function() {
 	});
 
 	client.on('system', function(name) {
-		console.log("[+] mpd: update: ", name);
+		console.log("[+] mpd: update: "+ name);
 	});
 
 	client.on('system-player', update);
