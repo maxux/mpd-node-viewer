@@ -13,9 +13,7 @@ Note: this is a proof-of-concept, it's an early beta version not designed to be 
 * Build an empty database: `cat database/artworks.sql | sqlite3 database/artworks.sqlite3`
 * Configure the daemon: `vim server/config.js`
 * Run the nodejs server: `cd server && node server.js`
-* Access to https://localhost:9910
-
-Note: you need ssl and https for now (http will be enabled later).
+* Access to http://localhost:9910 (or https if your enabled ssl)
  
 # Artworks
 To provide a decent way to give artworks, a local copy is made. This version use last.fm as source.
