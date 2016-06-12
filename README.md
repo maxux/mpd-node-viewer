@@ -8,6 +8,9 @@ Nodejs server and web based viewer for mpd with fullscreen cover support (using 
 There is a nodejs server that loads the whole mpd library on memory and the artworks database (see below)
 and then waits websocket clients to share the mpd status.
 Note: this is a proof-of-concept, it's an early beta version not designed to be used out-of-box !  
+
+# Dependencies
+`cd server && npm install sqlite3 mpd websocket express httpreq lastfmapi body-parser`
  
 # Basic start
 * Build an empty database: `cat database/artworks.sql | sqlite3 database/artworks.sqlite3`
@@ -37,14 +40,3 @@ When you have synced your covers cache, run:
 * `cd server && bash cache-blur.sh`
 
 This will compute the blur version of each covers (this require imagemagick).
- 
-# Dependencies
-* sqlite3
-* mpd
-* websocket
-* express
-* httpreq
-* lastfmapi
-* body-parser
- 
-`cd server && npm install sqlite3 mpd websocket express httpreq lastfmapi body-parser`
