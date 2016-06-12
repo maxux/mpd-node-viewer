@@ -54,29 +54,31 @@ var MusicPlayer = function(config, daemon) {
 	// parse a response and split it to an object
 	//
 	function parser(message) {
-		var lines = message.split("\n");
-		var final = [{}]; // default value
-		var index = 0;
-		
-		// used to avoid "next object" on line duplication
-		// for exemple: AlbumArtist twice, with the same value
-		var previous = null;
-		var exclude = {'Artist': true, 'file': true, 'Album': true};
+		var lines   = message.split("\n");
+		var final   = []; // default value
+		var initial = lines[0].split(": ")[0].trim();
+		var current = {}
 		
 		for(var i = 0; i < lines.length - 1; i++) {
 			var temp = lines[i].split(": ");
 			var key  = temp[0].trim();
 			
-			if(key == previous && (!exclude[key]))
+			// new item, pushing current
+			if(key == initial) {
+				final.push(current);
+				current = {}
+			}
+			
+			// avoid duplicate
+			if(current[key])
 				continue;
 			
-			// new item
-			if(final[index][key])
-				final[++index] = {};
-				
-			final[index][key] = temp[1].trim();
-			previous = key;
+			current[key] = temp[1].trim();
 		}
+		
+		// adding last entry and removing first (empty) one
+		final.push(current);
+		final.shift();
 		
 		return final;
 	}
