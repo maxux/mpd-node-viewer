@@ -10,7 +10,7 @@ and then waits websocket clients to share the mpd status.
 Note: this is a proof-of-concept, it's an early beta version not designed to be used out-of-box !  
  
 # Basic start
-* Build an empty database: `cat database/artworks.sql | sqlite3 databases/artworks.sqlite3`
+* Build an empty database: `cat database/artworks.sql | sqlite3 database/artworks.sqlite3`
 * Configure the daemon: `vim server/config.js`
 * Run the nodejs server: `cd server && node server.js`
 * Access to https://localhost:9910

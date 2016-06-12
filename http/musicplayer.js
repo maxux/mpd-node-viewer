@@ -10,7 +10,7 @@ var RemotePlayer = function() {
 	function connect() {
 		var self = this;
 		
-		this.socket = new WebSocket("wss://arya.maxux.net:9911/", "musicplayer");
+		this.socket = new WebSocket("wss://" + window.location.hostname + ":9911/", "musicplayer");
 		
 		this.socket.onopen = function() {
 			console.log('connected');
