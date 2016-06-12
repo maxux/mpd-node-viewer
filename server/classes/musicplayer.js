@@ -334,7 +334,7 @@ var MusicPlayer = function(config, daemon) {
 	//
 	// Public Interface
 	//
-	function queryError(response, message) {
+	this.queryError = function(response, message) {
 		response.end(JSON.stringify({
 			'status': 'error',
 			'message': message
@@ -342,7 +342,7 @@ var MusicPlayer = function(config, daemon) {
 		}) + "\n");
 	}
 	
-	function querySuccess(response, payload) {
+	this.querySuccess = function(response, payload) {
 		response.end(JSON.stringify({
 			'status': 'success',
 			'payload': payload
@@ -365,7 +365,7 @@ var MusicPlayer = function(config, daemon) {
 		
 		if(!this.album['tracks']) {
 			console.log("[-] web: album tracks empty, this should not happen");
-			return queryError(this.response, 'content invalid');
+			return self.queryError(this.response, 'content invalid');
 		}
 		
 		this.album['tracks'].push({
@@ -376,7 +376,7 @@ var MusicPlayer = function(config, daemon) {
 		});
 		
 		if(this.album['tracks'].length == this.total)
-			querySuccess(this.response, this.album);
+			self.querySuccess(this.response, this.album);
 	}
 	
 	function _getAlbum(error, message) {
