@@ -209,9 +209,6 @@ var MusicPlayer = function(config, daemon) {
 		var query = "SELECT * FROM artwork";
 		
 		self.artwork.all(query, function(err, rows) {
-			if(rows.length == 0)
-				return;
-			
 			self.counters.covers = 0;
 			
 			for(var i = 0; i < rows.length; i++) {
