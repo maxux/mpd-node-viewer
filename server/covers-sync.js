@@ -12,23 +12,35 @@ var fs     = require('fs');
 //
 var missing = [];
 var done = 0;
+var block = 10;
+var working = [];
 
-function commit() {
+function commit(root) {
     done += 1;
+    
+    console.log("[+] block: remain: " + working.length + ", done: " + done + "/" + missing.length);
     
     if(done == missing.length) {
         console.log("[+] sync process done, existing.");
         process.exit(0);
     }
-}
-
-function hit(artist, album) {
-    if(!player.library[artist][album]['artworks'])
-        missing.push({'artist': artist, 'album': album});
+    
+    working.splice(root.miss, 1);
+    
+    if(working.length == 0) {
+        console.log("[+] blockchain done, running next chain");
+        blockchain();
+    }
 }
 
 function save(root) {
+    // avoid double save with concurrency
+    if(root.saved)
+        return;
+
     if(root.covers['thumbnail'] && root.covers['fullsize']) {
+        root.saved = true;
+        
         var content = {
             $artist: root.artist,
             $album: root.album,
@@ -43,7 +55,9 @@ function save(root) {
 		
 		player.artwork.run(query, content, function (err) {
             if(err) throw(err);
-            commit();
+
+            root.miss['status'] = 'done';
+            commit(root);
         });
     }
 }
@@ -51,7 +65,7 @@ function save(root) {
 function downloaded(root, type, data) {
     var hash = crypto.createHash('md5').update(data).digest("hex");
     var filename = '../covers/cache/' + hash + ".jpg";
-    
+
     root.covers[type] = {'hash': hash, 'data': data};
     
     fs.writeFile(filename, data, function (err) {
@@ -71,12 +85,15 @@ function processing(root) {
         console.log("[-] " + artist + " - " + album + ": thumbnail or fullsize not found");
         console.log("[-] " + artist + " - " + album + ": " + root.url);
         
-        commit();
+        root.miss['status'] = 'failed';
+        commit(root);
+
         return;
     }
     
-    console.log("[+] sync: " + artist + " - " + album);
+    console.log("[+] sync: downloading: " + artist + " - " + album);
     root.covers = {}
+    root.saved = false;
     
     httpreq.get(root.images['thumbnail'], {binary: true}, function (err, res) {
         if (err) return console.log(err);
@@ -90,7 +107,11 @@ function processing(root) {
 }
 
 function infos(error, album) {
-    if (error) { throw error; }
+    if(error) {
+        console.log('[-] lastfm error: ' + this.artist + ' - ' + this.album + ': ' + error['message']);
+        this.miss['status'] = 'error';
+        return commit(this);
+    }
     
     this.images = {}
     this.url = album['url']
@@ -125,18 +146,45 @@ function infos(error, album) {
     processing(this);
 }
 
-// function search(artist, album) {
-function search(artist, album) {
+function hit(artist, album) {
+    if(!player.library[artist][album]['artworks'])
+        missing.push({
+            'artist': artist,
+            'album': album,
+            'status': 'pending',
+        });
+}
+
+function search(miss) {
     object = {}
-    object.artist = artist;
-    object.album = album;
+    object.miss = miss;
+    object.artist = miss['artist'];
+    object.album = miss['album'];
     object.images = {};
     
     lfm.album.getInfo({
-        'artist': artist,
-        'album': album,
+        'artist': object.artist,
+        'album': object.album,
         
     }, infos.bind(object));
+}
+
+function blockchain() {
+    var z = 0;
+    
+    for(var i = 0; i < missing.length; i++) {
+        if(missing[i]['status'] != 'pending')
+            continue;
+            
+        missing[i]['status'] = 'processing';
+        
+        working.push(missing[i]);
+        search(missing[i]);
+        
+        // limit for this block
+        if(z++ > block)
+            break;
+    }
 }
 
 function syncing() {
@@ -154,14 +202,7 @@ function syncing() {
     console.log("[+] sync: missing artworks:");
     console.log(missing);
     
-    var limit = 10;
-    
-    for(var id in missing) {
-        search(missing[id]['artist'], missing[id]['album']);
-        
-        if(id > limit)
-            break;
-    }
+    blockchain();
 }
 
 
