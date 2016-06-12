@@ -154,8 +154,14 @@ function syncing() {
     console.log("[+] sync: missing artworks:");
     console.log(missing);
     
-    for(var id in missing)
+    var limit = 10;
+    
+    for(var id in missing) {
         search(missing[id]['artist'], missing[id]['album']);
+        
+        if(id > limit)
+            break;
+    }
 }
 
 
