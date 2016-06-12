@@ -179,7 +179,9 @@ var RemotePlayer = function() {
 function show(data) {
 	$('#album-content #album-artist').html(data.artist);
 	$('#album-content #album-name').html(data.album);
-	$('#album-content #album-cover').attr('src', '/covers/cache/' + data.artwork);
+		
+	var artwork = (data.artwork) ? '/covers/cache/' + data.artwork : '/covers/default-release.jpg';
+	$('#album-content #album-cover').attr('src', artwork);
 	
 	// content
 	var tbody = $('#album-content #album-tracks tbody');
