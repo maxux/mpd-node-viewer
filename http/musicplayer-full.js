@@ -1,3 +1,6 @@
+var wsport = 0;
+var wsprotocol = "ws";
+
 var RemotePlayer = function() {
 	this.self = this;
 	
@@ -6,13 +9,14 @@ var RemotePlayer = function() {
 	self.playing  = null;
 	self.nextsong = {};
 
-	function connect(port, protocol) {
+	function connect() {
 		var self = this;
-		var remote = protocol + "://" + window.location.hostname + ":" + port;
+		
+		// saving from source
+		this.remote = wsprotocol + "://" + window.location.hostname + ":" + wsport;
 		
 		console.log(remote + ": connecting");
-		
-		this.socket = new WebSocket(remote, "musicplayer");
+		this.socket = new WebSocket(self.remote, "musicplayer");
 		
 		this.socket.onopen = function() {
 			console.log(remote + ': connected');
@@ -107,7 +111,11 @@ var RemotePlayer = function() {
 	//
 	function initialize(info) {
 		pl = info.payload;
-		connect(pl.port, pl.ssl ? 'wss' : 'ws');
+		
+		wsport = pl.port;
+		wsprotocol = pl.ssl ? 'wss' : 'ws';
+		
+		connect();
 	}
 	
 	$.get('/query/info', initialize);
