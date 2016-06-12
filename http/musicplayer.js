@@ -150,8 +150,12 @@ var RemotePlayer = function() {
 				var that = data[artist][album];
 				var cover = (that.artworks) ? '/covers/cache/' + that.artworks.thumb : '/covers/default-release.jpg';
 				
+				// FIXME ?
+				var fctartist = artist.replace(/"/g, '&quot;');
+				var fctalbum = album.replace(/"/g, '&quot;');
+				
 				var item  = $('<div>', {'class': 'col-lg-2 col-md-4 col-xs-6 thumb'});
-				var link  = $('<a>', {'class': 'thumbnail', 'onclick': "return album('" + artist + "', '" + album + "');"});
+				var link  = $('<a>', {'class': 'thumbnail', 'onclick': 'return album("' + fctartist + '", "' + fctalbum + '");'});
 				var image = $('<img>', {src: cover});
 				var text  = $('<div>', {'class': 'title'}).html('<strong>' + artist + '</strong><br />' + album);
 				
