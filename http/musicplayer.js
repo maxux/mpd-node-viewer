@@ -10,7 +10,7 @@ var RemotePlayer = function() {
 	function connect() {
 		var self = this;
 		
-		this.socket = new WebSocket("ws://clea.maxux.net:9911/", "musicplayer");
+		this.socket = new WebSocket("wss://arya.maxux.net:9911/", "musicplayer");
 		
 		this.socket.onopen = function() {
 			console.log('connected');
@@ -84,7 +84,7 @@ var RemotePlayer = function() {
 			tr.append($('<td>').html(timeinfo(item.time)));
 			
 			if(i == index)
-				tr.attr('class', 'bg-success');
+				tr.attr('class', 'success');
 				
 			$('#playlist tbody').append(tr);
 		}
@@ -98,7 +98,10 @@ var RemotePlayer = function() {
 			
 			// timeinfo
 			// $('#bitrate').html(self.playing.bitrate + ' kbps');
-			$('#timestamp').html(timeinfo(self.playing.elapsed) + ' / ' + timeinfo(self.current.time));
+			var text = timeinfo(self.playing.elapsed) + ' / ' + timeinfo(self.current.time);
+			// text += ' [' + self.playing.bitrate + ' kbps]';
+			
+			$('#timestamp').html(text);
 		}
 	}
 	
@@ -107,10 +110,15 @@ var RemotePlayer = function() {
 		$('.now-title').html(self.current.title);
 		$('.now-album').html(self.current.album);
 		
+		document.title = self.current.artist + ' - ' + self.current.title;
+		
+		if(!self.current.cover)
+			self.current.cover = '../default-release.jpg';
+		
 		if(!$('html').hasClass('full')) {
-			$('#cover').attr('src', '../../cache/' + self.current.cover);
+			$('#cover').attr('src', '/covers/cache/' + self.current.cover);
 			
-		} else $('html').css('background-image', 'url(../../cache/' + self.current.cover + ')');
+		} else $('html').css('background-image', 'url(/covers/cache/' + self.current.cover + ')');
 		
 		minimal();
 		playing();
@@ -123,7 +131,7 @@ var RemotePlayer = function() {
 		for(var artist in data) {
 			for(var album in data[artist]) {
 				var that = data[artist][album];
-				var cover = (that.artworks) ? '../../cache/' + that.artworks.thumb : '../../cache/default-release.png';
+				var cover = (that.artworks) ? '/covers/cache/' + that.artworks.thumb : '/covers/default-release.jpg';
 				
 				var item  = $('<div>', {'class': 'col-lg-2 col-md-4 col-xs-6 thumb'});
 				var link  = $('<a>', {'class': 'thumbnail', 'onclick': "return album('" + artist + "', '" + album + "');"});
@@ -154,7 +162,7 @@ var RemotePlayer = function() {
 function show(data) {
 	$('#album-content #album-artist').html(data.artist);
 	$('#album-content #album-name').html(data.album);
-	$('#album-content #album-cover').attr('src', 'cache/' + data.artwork);
+	$('#album-content #album-cover').attr('src', '/covers/cache/' + data.artwork);
 	
 	// content
 	var tbody = $('#album-content #album-tracks tbody');
@@ -178,7 +186,7 @@ function show(data) {
 function album(artist, album) {
 	$.ajax({
 		type: "POST",
-		url: "../../query.php",
+		url: "/query/album",
 		data: {action: "album", artist: artist, album: album}
 		
 	}).done(function(data) {

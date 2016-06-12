@@ -1,10 +1,18 @@
-var MusicPlayer = require('./musicplayer.js');
-var WebSocket   = require('./websocket.js');
+var MusicPlayer = require('./classes/musicplayer.js');
+var WebSocket   = require('./classes/websocket.js');
+var GlobalConf  = require('./config.js');
 
-var player = new MusicPlayer();
-var websocket = new WebSocket(9911, syncronize, null);
+//
+// Music Player Daemon process
+//
+var player = new MusicPlayer(true);
 
-function syncronize(connection, extra) {
+//
+// websocket handler
+//
+var websocket = new WebSocket(GlobalConf['ws-port'], syncronize, GlobalConf);
+
+function syncronize(connection) {
 	//
 	// send the current track
 	//
@@ -46,6 +54,7 @@ function syncronize(connection, extra) {
 	player.on('refresh', refresh);
 	player.on('status', status);
 	player.on('nextsong', nextsong);
+	player.on('playlist', playlist);
 	
 	//
 	// removing each handlers listeners on close
@@ -71,5 +80,35 @@ function syncronize(connection, extra) {
 	console.log("[+] syncronize: ready");
 }
 
+//
+// static and restful web server
+//
+var https = require('https');
+var express = require('express');
+var bodyParser = require('body-parser')
+var fs  = require('fs');
+var app = express();
 
+var cfg = {
+	key: fs.readFileSync(GlobalConf['ssl-key']),
+	cert: fs.readFileSync(GlobalConf['ssl-cert'])
+};
 
+app.use(express.static('../http'));
+app.use('/covers/', express.static('../covers'));
+app.use(bodyParser.urlencoded({extended: true})); 
+
+console.log("[+] web: listening web server (port " + GlobalConf['web-port'] + ")");
+https.createServer(cfg, app).listen(GlobalConf['web-port']);
+
+//
+// REST Requests
+//
+app.post('/query/album', function (req, res) {
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	
+	var artist = req.body.artist;
+	var album = req.body.album;
+	
+	player.getAlbum(artist, album, res);
+});

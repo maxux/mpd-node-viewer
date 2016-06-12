@@ -20,11 +20,6 @@ body {
 
 }
 
-table thead {
-	font-weight: bold;
-	background: #E5E5E5;
-}
-
 table tbody tr {
 	opacity: 1;
 	transition: 1.5s;
@@ -63,6 +58,10 @@ table tbody tr {
 #playing {
 	text-align: center;
 	margin-top: 50px;
+}
+
+table#playlist {
+	text-align: left;
 }
 
 #playing h3 {

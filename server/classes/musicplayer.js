@@ -4,11 +4,11 @@ var mpd     = require('mpd');
 var sqlite3 = require('sqlite3').verbose();
 var command = mpd.cmd;
 
-var MusicPlayer = function() {
+var MusicPlayer = function(daemon) {
 	var self = this;
 	events.EventEmitter.call(this);
 	
-	self.artwork = new sqlite3.Database('../databases/artworks.sqlite3');
+	self.artwork = new sqlite3.Database('../database/artworks.sqlite3');
 	
 	self.current = {
 		title:  null,
@@ -17,7 +17,8 @@ var MusicPlayer = function() {
 		track:  null,
 		time:   null,
 		position: null,
-		cover:    null,
+		cover:  null,
+		id:     null,
 	};
 	
 	self.status = {
@@ -47,6 +48,8 @@ var MusicPlayer = function() {
 	var client = mpd.connect({
 		port: 6600,
 		host: 'localhost',
+		// port: 6666,
+		// host: 'omlet.ovh',
 	});
 	
 	//
@@ -57,23 +60,24 @@ var MusicPlayer = function() {
 		var final = [{}]; // default value
 		var index = 0;
 		
-		 // used to avoid "next object" on line duplication
-		 // for exemple: AlbumArtist twice, with the same value
+		// used to avoid "next object" on line duplication
+		// for exemple: AlbumArtist twice, with the same value
 		var previous = null;
+		var exclude = {'Artist': true, 'file': true, 'Album': true};
 		
 		for(var i = 0; i < lines.length - 1; i++) {
-			if(lines[i] == previous)
-				continue;
-			
 			var temp = lines[i].split(": ");
 			var key  = temp[0].trim();
+			
+			if(key == previous && (!exclude[key]))
+				continue;
 			
 			// new item
 			if(final[index][key])
 				final[++index] = {};
 				
 			final[index][key] = temp[1].trim();
-			previous = lines[i];
+			previous = key;
 		}
 		
 		return final;
@@ -98,6 +102,9 @@ var MusicPlayer = function() {
 		if(source.Pos)
 			destination.position = source.Pos;
 		
+		if(source.Id)
+			destination.id = source.Id;
+		
 		return destination;
 	}
 	
@@ -112,7 +119,7 @@ var MusicPlayer = function() {
 		self.nextsong.artist = item.artist;
 		self.nextsong.album  = item.album;
 		self.nextsong.title  = item.title;
-		self.nextsong.cover  = 'default-release.jpg';
+		self.nextsong.cover  = null;
 		
 		//
 		// FIXME: copy/pasta
@@ -139,11 +146,13 @@ var MusicPlayer = function() {
 		var temp = parser(message);
 		var data = temp[0];
 		
+		console.log(data);
 		self.current = song(data);
+		console.log(self.current);
 		console.log("[+] current song: " + data.Artist + " - " + data.Title);
 		
 		// setting default cover
-		self.current.cover = 'default-release.jpg';
+		self.current.cover = null;
 		
 		// searching cover
 		var query = "SELECT * FROM artwork WHERE artist = ? AND album = ?";
@@ -180,8 +189,12 @@ var MusicPlayer = function() {
 		var data = parser(message);
 		console.log("[+] mpd: playling: " + data.length + " items fetched");
 		
+		self.playlist = {};
+		
 		for(var i = 0; i < data.length; i++)
-			self.playlist[i] = song(data[i]);
+			self.playlist[data[i].Pos] = song(data[i]);
+		
+		self.emit('playlist', self.playlist);
 	}
 	
 	function playlist() {
@@ -191,6 +204,46 @@ var MusicPlayer = function() {
 	//
 	// build the library
 	//
+	function covers() {
+		console.log("[+] mpd: loading covers");
+		
+		// searching cover
+		var query = "SELECT * FROM artwork";
+		
+		self.artwork.all(query, function(err, rows) {
+			if(rows.length == 0)
+				return;
+			
+			self.counters.covers = 0;
+			
+			for(var i = 0; i < rows.length; i++) {
+				item = rows[i];
+				
+				if(!self.library[item.artist]) {
+					// console.log('[-] mpd: cover (artist): ' + item.artist + ': not found on library');
+					continue
+				}
+				
+				if(!self.library[item.artist][item.album]) {
+					var name = item.artist + ' - ' + item.album;
+					// console.log('[-] mpd: cover (album): ' + name + ': not found on library');
+					continue
+				}
+				
+				self.library[item.artist][item.album]['artworks'] = {
+					'thumb': item.thumb,
+					'full': item.fullsize
+				};
+				
+				self.counters.covers++;
+			}
+			
+			console.log("[+] mpd: covers: " + self.counters.covers + " covers fetched");
+			
+			self.emit('load-completed');
+		});
+	}
+	
 	function albums(_artist, message, test) {
 		var artist = String(_artist);
 		var data = parser(message);
@@ -204,7 +257,7 @@ var MusicPlayer = function() {
 		self.counters.proceed++;
 		if(self.counters.proceed == self.counters.artists) {
 			console.log("[+] mpd: albums: everything fetched");
-			// covers();
+			covers();
 		}
 	}
 	
@@ -217,7 +270,8 @@ var MusicPlayer = function() {
 		console.log("[+] mpd: artists: " + data.length + " fetched");
 		
 		for(var i = 0; i < data.length; i++) {
-			client.sendCommand(command("list album artist", [data[i].Artist]),
+			client.sendCommand(
+				command("list album artist", [data[i].Artist]),
 				(function(error, message) { albums(this, message, self) }).bind(data[i].Artist)
 			);
 		}
@@ -267,15 +321,108 @@ var MusicPlayer = function() {
 		update();
 	});
 
-	client.on('system', function(name) {
-		console.log("[+] mpd: update: "+ name);
-	});
+	// if daemon, listening for events
+	if(daemon) {
+		client.on('system', function(name) {
+			console.log("[+] mpd: update: "+ name);
+			
+			if(name == "playlist")
+				playlist();
+		});
 
-	client.on('system-player', update);
+		client.on('system-player', update);
+		
+		// refresh current playing time
+		setInterval(status, 1000);
+	}
 	
-	// refresh current playing time
-	// setInterval(status, 10000);
-	setInterval(status, 1000);
+	//
+	// Public Interface
+	//
+	function queryError(response, message) {
+		response.end(JSON.stringify({
+			'status': 'error',
+			'message': message
+
+		}) + "\n");
+	}
+	
+	function querySuccess(response, payload) {
+		response.end(JSON.stringify({
+			'status': 'success',
+			'payload': payload
+
+		}) + "\n");
+	}
+	
+	function timer(time) {
+		if(!time)
+			return '0:00';
+		
+		min = parseInt(time / 60);
+		sec = time % 60;
+		
+		return ("0" + min).slice(-2) + ':' + ("0" + sec).slice(-2);
+	}
+	
+	function _getFilename(error, message) {
+		var data = parser(message);
+		
+		if(!this.album['tracks']) {
+			console.log("[-] web: album tracks empty, this should not happen");
+			return queryError(this.response, 'content invalid');
+		}
+		
+		this.album['tracks'].push({
+			'track': data[0]['Track'],
+			'title': data[0]['Title'],
+			'time': timer(data[0]['Time']),
+			'date': data[0]['Date'],
+		});
+		
+		if(this.album['tracks'].length == this.total)
+			querySuccess(this.response, this.album);
+	}
+	
+	function _getAlbum(error, message) {
+		var data = parser(message);
+		var artwork = null;
+		
+		if(self.library[this.artist][this.album]['artworks'])
+			artwork = self.library[this.artist][this.album]['artworks']['full'];
+		
+		this.total = data.length;
+		this.album = {
+			'artist': this.artist,
+			'album': this.album,
+			'artwork': artwork,
+			'tracks': [],
+		};
+		
+		for(var x in data) {
+			client.sendCommand(
+				command("search filename", [data[x].file]),
+				_getFilename.bind(this)
+			);
+		}
+	}
+	
+	//
+	// reading album content
+	// "this" will be shared along all the process
+	//
+	this.getAlbum = function(artist, album, res) {
+		this.artist = artist;
+		this.album = album;
+		this.response = res;
+		
+		console.log("[+] rest: requesting album: " + artist + " - " + album);
+		
+		client.sendCommand(
+			command('list file artist ', [artist, "album", album]),
+			_getAlbum.bind(this)
+		);
+	};
 };
 
 util.inherits(MusicPlayer, events.EventEmitter);

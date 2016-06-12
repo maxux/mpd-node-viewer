@@ -3,10 +3,11 @@
 #
 # settings
 #
-SOURCE="../http/cache/"
-DESTINATION="../http/cache-blur/"
+SOURCE="../covers/"
+CACHE="cache/"
+DESTINATION="blurred/"
 LISTFILE="/tmp/artwork.files"
-DATABASE="../databases/artworks.sqlite3"
+DATABASE="../database/artworks.sqlite3"
 
 #
 # building fullsize artwork list file
@@ -30,13 +31,15 @@ while read i; do
 	#
 	echo -en "\r[+] processing $INDEX/$ITEMS: checking..."
 	
-	if [ ! -f ../$DESTINATION/$i ]; then
+	if [ ! -f $DESTINATION/$i ]; then
 		echo -e "\r[+] processing $INDEX/$ITEMS: $i"
-		convert $i -modulate 100,20 -blur 0x8 -quality 90 ../$DESTINATION/$i
+		convert $CACHE/$i -modulate 100,20 -blur 0x8 -quality 90 $DESTINATION/$i
 	fi
 	
 	INDEX=$(($INDEX + 1))
-	
+
 done < $LISTFILE
+
+rm -f $LISTFILE
 
 echo -e "\n[+] all done."

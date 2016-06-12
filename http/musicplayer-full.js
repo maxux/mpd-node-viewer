@@ -9,7 +9,7 @@ var RemotePlayer = function() {
 	function connect() {
 		var self = this;
 		
-		this.socket = new WebSocket("ws://clea.maxux.net:9911/", "musicplayer");
+		this.socket = new WebSocket("wss://arya.maxux.net:9911/", "musicplayer");
 		
 		this.socket.onopen = function() {
 			console.log('connected');
@@ -68,8 +68,8 @@ var RemotePlayer = function() {
 	function preload() {
 		// preloading next cover
 		if(self.nextsong.cover) {
-			$('<img/>')[0].src = '../../cache/' + self.nextsong.cover;
-			$('<img/>')[0].src = '../../cache-blur/' + self.nextsong.cover;
+			$('<img/>')[0].src = '/covers/cache/' + self.nextsong.cover;
+			$('<img/>')[0].src = '/covers/blurred/' + self.nextsong.cover;
 		}
 	}
 	
@@ -90,9 +90,11 @@ var RemotePlayer = function() {
 		$('.now-title').html(self.current.title);
 		$('.now-album').html(self.current.album);
 		
+		document.title = self.current.artist + ' - ' + self.current.title;
+		
 		// $('div.full').css('background-image', 'url(../../cache/' + self.current.cover + ')');
-		$('div.full').css('background-image', 'url(../../cache-blur/' + self.current.cover + ')');
-		$('div.cover').css('background-image', 'url(../../cache/' + self.current.cover + ')');
+		$('div.full').css('background-image', 'url(/covers/blurred/' + self.current.cover + ')');
+		$('div.cover').css('background-image', 'url(/covers/cache/' + self.current.cover + ')');
 		
 		minimal();
 	};

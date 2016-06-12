@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="description" content="" />
-	<title>Bibliothèque musicale</title>
+	<title>Music Player Daemon</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 	<link rel="stylesheet" href="style.css" media="all" type="text/css">
 	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
@@ -29,7 +29,7 @@
 				
 				<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
-					<li><a href="./library.html">Bibliothèque</a></li>
+					<li><a href="./library.html">Library</a></li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="active">
@@ -50,10 +50,15 @@
 		</div>
 		<div class="col-md-7">
 			<h1 id="artist" class="now-artist"></h1>
-			<h3 id="album" class="now-album">Récupération des informations...</h3>
+			<h3 id="album" class="now-album">Retrieving data...</h3>
 			<h2 id="title" class="now-title"></h2>
 			
-			<table id="playlist" class="table table-condensed">
+			<table id="playlist" class="table table-condensed table-hover">
+				<thead>
+					<th>Artist</th>
+					<th>Album</th>
+					<th>Title</th>
+					<th>Time</th>
 				<tbody></tbody>
 			</table>
 			
@@ -68,8 +73,8 @@
 	</div>
 	
 	<footer>
-		<p>Powered by <a href="#">Maxux</a>, <a href="#">bootstrap</a>, <a href="#">jQuery</a>, 
-		<a href="#">mpd</a>, <a href="#">discogs</a> and <a href="#">node.js</a></p>
+		<p>Powered by <a href="#">Maxux</a>, <a href="#">bootstrap</a>,
+		<a href="#">mpd</a>, <a href="#">last.fm</a> and <a href="#">node.js</a></p>
 		<a href="full.html">full screen interface</a>
 	</footer>
 	

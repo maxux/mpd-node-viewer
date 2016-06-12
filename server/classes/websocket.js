@@ -1,8 +1,14 @@
 var WebSocketServer = require('websocket').server;
-var http = require('http');
+var http = require('https');
+var fs = require('fs');
 
-var WebSocket = function(port, handler, extra) {
-	var server = http.createServer(function(req, response) {
+var WebSocket = function(port, handler, config) {
+	var cfg = {
+		key: fs.readFileSync(config['ssl-key']),
+		cert: fs.readFileSync(config['ssl-cert'])
+	};
+
+	var server = http.createServer(cfg, function(req, response) {
 		response.writeHead(404);
 		response.end();
 		
@@ -35,7 +41,7 @@ var WebSocket = function(port, handler, extra) {
 		
 		console.log('[+] websocket: client accepted: ' + request.remoteAddress);
 		
-		new handler(connection, extra);
+		new handler(connection);
 		
 		connection.on('close', function() {
 			console.log('[+] websocket: client disconnected');
