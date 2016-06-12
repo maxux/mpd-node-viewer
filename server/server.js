@@ -83,28 +83,47 @@ function syncronize(connection) {
 //
 // static and restful web server
 //
-var https = require('https');
 var express = require('express');
 var bodyParser = require('body-parser')
+var https = require('https');
+var http = require('http');
 var fs  = require('fs');
 var app = express();
-
-var cfg = {
-	key: fs.readFileSync(GlobalConf['ssl-key']),
-	cert: fs.readFileSync(GlobalConf['ssl-cert'])
-};
 
 app.use(express.static('../http'));
 app.use('/covers/', express.static('../covers'));
 app.use(bodyParser.urlencoded({extended: true})); 
 
-console.log("[+] web: listening web server (port " + GlobalConf['web-port'] + ")");
-https.createServer(cfg, app).listen(GlobalConf['web-port']);
+// http or https
+if(GlobalConf['ssl-key'] !== false) {
+	var cfg = {
+		key: fs.readFileSync(GlobalConf['ssl-key']),
+		cert: fs.readFileSync(GlobalConf['ssl-cert'])
+	};
+	
+	console.log("[+] web: listening https server (port " + GlobalConf['web-port'] + ")");
+	https.createServer(cfg, app).listen(GlobalConf['web-port']);
+	
+} else {
+	console.log("[+] web: listening http server (port " + GlobalConf['web-port'] + ")");
+	http.createServer(app).listen(GlobalConf['web-port']);
+}
 
 //
 // REST Requests
 //
-app.post('/query/album', function (req, res) {
+app.get('/query/info', function(req, res) {
+	res.writeHead(200, {'Content-Type': 'application/json'});
+	
+	var info = {
+		'ssl': !(GlobalConf['ssl-key'] === false),
+		'port': GlobalConf['ws-port'],
+	};
+	
+	player.querySuccess(res, info);
+});
+
+app.post('/query/album', function(req, res) {
 	res.writeHead(200, {'Content-Type': 'application/json'});
 	
 	var artist = req.body.artist;

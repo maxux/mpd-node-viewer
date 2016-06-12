@@ -12,8 +12,13 @@ var MpdUIConfig = {
     // websocket and webserver
     'ws-port': 9911,
     'web-port': 9910,
-    'ssl-key': 'ssl/your-ssl.key',
-    'ssl-cert': 'ssl/your-ssl.crt',
+    
+    // for https, put your ssl keys
+    // for http, just put false here
+    'ssl-key': false,
+    'ssl-cert': false,
+    // 'ssl-key': 'ssl/your-ssl.key',
+    // 'ssl-cert': 'ssl/your-ssl.crt',
 };
 
 module.exports = MpdUIConfig;

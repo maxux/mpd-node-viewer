@@ -6,15 +6,18 @@ var RemotePlayer = function() {
 	self.playing  = null;
 	self.nextsong = {};
 
-	function connect() {
+	function connect(port, protocol) {
 		var self = this;
+		var remote = protocol + "://" + window.location.hostname + ":" + port;
 		
-		this.socket = new WebSocket("wss://" + window.location.hostname + ":9911/", "musicplayer");
+		console.log(remote + ": connecting");
+		
+		this.socket = new WebSocket(remote, "musicplayer");
 		
 		this.socket.onopen = function() {
-			console.log('connected');
+			console.log(remote + ': connected');
 			$('#artist').html('connected');
-		}
+		};
 		
 		this.socket.onmessage = function(msg) {
 			json = JSON.parse(msg.data);
@@ -99,7 +102,15 @@ var RemotePlayer = function() {
 		minimal();
 	};
 	
-	connect();
+	//
+	// request server info and building remote schema
+	//
+	function initialize(info) {
+		pl = info.payload;
+		connect(pl.port, pl.ssl ? 'wss' : 'ws');
+	}
+	
+	$.get('/query/info', initialize);
 };
 
-$(document).bind("contextmenu",function(e) { e.preventDefault() });
+$(document).bind("contextmenu", function(e) { e.preventDefault() });

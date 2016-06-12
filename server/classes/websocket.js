@@ -1,23 +1,32 @@
 var WebSocketServer = require('websocket').server;
-var http = require('https');
+var https = require('https');
+var http = require('http');
 var fs = require('fs');
 
 var WebSocket = function(port, handler, config) {
-	var cfg = {
-		key: fs.readFileSync(config['ssl-key']),
-		cert: fs.readFileSync(config['ssl-cert'])
-	};
+	var httpsrv = null;
 
-	var server = http.createServer(cfg, function(req, response) {
-		response.writeHead(404);
-		response.end();
+	if(config['ssl-key']) {
+		console.log("[+] websocket: loading ssl");
 		
-	}).listen(port);
+		var cfg = {
+			'key': fs.readFileSync(config['ssl-key']),
+			'cert': fs.readFileSync(config['ssl-cert'])
+		};
+		
+		httpsrv = https.createServer(cfg, invalid).listen(port);
+		
+	} else httpsrv = http.createServer(invalid).listen(port);
 
 	wsServer = new WebSocketServer({
-		httpServer: server,
+		httpServer: httpsrv,
 		autoAcceptConnections: false
 	});
+	
+	function invalid(req, response) {
+		response.writeHead(404);
+		response.end();
+	}
 
 	function valide(origin) {
 		// check origin
