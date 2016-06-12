@@ -133,8 +133,20 @@ var RemotePlayer = function() {
 		var index = 1;
 		var row = $('#library .row');
 		
-		for(var artist in data) {
-			for(var album in data[artist]) {
+		var artists = Object.keys(data); 
+		artists.sort();
+		
+		console.log(artists);
+		
+		for(var arid in artists) {
+			var artist = artists[arid];
+			
+			var albums = Object.keys(data[artist]);
+			albums.sort();
+			
+			for(var alid in albums) {
+				var album = albums[alid];
+				
 				var that = data[artist][album];
 				var cover = (that.artworks) ? '/covers/cache/' + that.artworks.thumb : '/covers/default-release.jpg';
 				
