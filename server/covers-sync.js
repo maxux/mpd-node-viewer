@@ -167,5 +167,5 @@ var lfm = new LastfmAPI({
 	'secret' : GlobalConf['lastfm-secret']
 });
 
-var player = new MusicPlayer(false);
+var player = new MusicPlayer(GlobalConf, false);
 player.on('load-completed', syncing);

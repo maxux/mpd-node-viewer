@@ -4,7 +4,7 @@ var mpd     = require('mpd');
 var sqlite3 = require('sqlite3').verbose();
 var command = mpd.cmd;
 
-var MusicPlayer = function(daemon) {
+var MusicPlayer = function(config, daemon) {
 	var self = this;
 	events.EventEmitter.call(this);
 	
@@ -46,10 +46,8 @@ var MusicPlayer = function(daemon) {
 	// connect to mpd
 	//
 	var client = mpd.connect({
-		port: 6600,
-		host: 'localhost',
-		// port: 6666,
-		// host: 'omlet.ovh',
+		host: config['mpd-host'],
+		port: config['mpd-port'],
 	});
 	
 	//

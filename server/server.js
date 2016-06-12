@@ -5,7 +5,7 @@ var GlobalConf  = require('./config.js');
 //
 // Music Player Daemon process
 //
-var player = new MusicPlayer(true);
+var player = new MusicPlayer(GlobalConf, true);
 
 //
 // websocket handler
